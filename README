@@ -1,0 +1,11 @@
+SquealIrcBot is an IRC bot framework written in php that is designed to help
+create new bots quickly and run them efficiently. It was built by Cullen Walsh,
+who was tired of having to use frameworks in other languages (Java...) to build
+IRC bots.
+
+SquealIrcBot is based on / a port of PircBot, which is a GPL IRC bot library
+written in Java and available at http://www.jibble.org/pircbot.php .
+
+If you have any comments, let me know at squeal@cullenwalsh.com
+
+[2011-09-15] Release Version 1.0

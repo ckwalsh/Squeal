@@ -1,0 +1,55 @@
+SquealIrcBot is design such that you never should have to extend the
+SquealIrcBot class. Instead, you implement listeners that are triggered by
+events, And the listeners can perform whatever actions as the bot. This allows
+mixin systems, where potentially one Listener implementation can be used with
+many bots.
+
+A listener is any php object that implements methods of the form onName. The
+name attribute corresponds to an event type that is triggered when the bot
+performs or recieves certain actions. Listeners are executed in the order they
+are loaded, and if a call to onName returns true, execution of the subsequent
+loaders will not occur.
+
+At the moment, these are the current actions:
+
+Connect: When the bot connects to the IRC server
+Disconnect: When the bot disconnects from the IRC server
+Tick: Triggered at least every X milliseconds, where X is configurable
+Raw: Reads the raw IRC lines from the server
+Unknown: Catches any lines that are not recognized by the bot
+Version: A CTCP Version request
+Action: A CTCP Action
+Ping: A CTCP Ping Request
+Request: A CTCP Time Request
+Finger: A CTCP Finger Request
+Message: A user (Perhaps us) send a message to a channel
+PrivMessage: A message was sent directly to the bot
+Join: A user (perhaps us) joined a channel
+Part: A user (perhaps us) left a channel
+Nick: A user (perhaps us) changed their nick
+Notice: We recieved a Notice
+Quit: A user (perhaps us) quit the server
+Kick: A user (perhaps us) was kicked from a channel
+Topic: A user changed the channel topic
+Invite: We were invited to a channel
+All: Catches all events, and gets provided the event type called
+
+=========================================
+
+
+Simple example bot (Only responds to help actions)
+
+<?php
+require_once('SquealCallbackSchedule.php');
+require_once('SquealChannel.php');
+require_once('SquealCommandListener.php');
+require_once('SquealHelpCommandListener.php');
+require_once('SquealIrcBot.php');
+require_once('SquealReplyConstants.php');
+require_once('SquealUser.php');
+
+$bot = new SquealIrcBot();
+$bot->addEventListener(new SquealHelpCommandListener());
+$bot->connect('chat.freenode.net');
+$bot->joinChannel('#squeal_bot');
+$bot->runBot();
