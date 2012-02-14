@@ -44,30 +44,31 @@
 class SquealIrcBot {
 
   protected
-    $host,
-    $port,
-    $password,
-    $ssl,
-    $socket,
-    $autoNickChange,
-    $output,
-    $name,
-    $nick,
-    $login,
-    $version,
-    $finger,
-    $messageDelay,
-    $tick,
-    $lastSend,
-    $lastRecieve,
-    $ping,
-    $channels,
-    $users,
-    $channelPrefixes,
-    $listeners,
-    $eventCache,
-    $schedule,
-    $lineBuffer;
+    $host, // Host of the IRC server
+    $port, // Port of the IRC server
+    $password, // Password of the IRC server
+    $ssl, // Whether the server uses SSL
+    $socket, // The connection socket to the IRC server
+    $autoNickChange, // Whether Squeal should automatically pick a new nick if
+                     // the chosen one is in use.
+    $output, // Outgoing IRC message queue
+    $name, // Name of the bot
+    $nick, // Nick of the bot
+    $login, // Login for the bot
+    $version, // Version string the bot should respond with
+    $finger, // Finger string the bot should respond with
+    $messageDelay, // How many milliseconds of delay between sending messages
+    $tick, // Maximum amount of time between tick events
+    $lastSend, // timestamp of the last sent message
+    $lastRecieve, // timestamp of the last received message
+    $channels, // Hash of channel objects this bot is a member of
+    $users, // Have of users visible to this bot
+    $channelPrefixes, // valid channel prefixes for this server
+    $listeners, // event listeners for this bot
+    $eventCache, // cache for events based on event listeners
+    $schedule, // Schedule for time sensitive events
+    $lineBuffer, // Buffer for data read from server
+    $channelList; // Storage for channel list responses from the server
 
   public function __construct() {
     $this->autoNickChange = true;
@@ -278,8 +279,8 @@ class SquealIrcBot {
           $code = (int) $command;
           if ($code) {
             // This is a server response
-            $response = substr($line, strpos($sender_info, $command) + 4);
-            $this->handleServerResponse($code, $response);
+            $response = substr($line, strpos($line, $command) + 4);
+            $this->handleServerResponse($code, $response, $line);
             return;
           }
           else {
@@ -289,9 +290,6 @@ class SquealIrcBot {
           }
         } else {
           // We have no clue what this is...
-          $this->event('Unknown', array(
-            'line' => $line,
-          ));
           return;
         }
       }
@@ -515,12 +513,12 @@ class SquealIrcBot {
       case 'TOPIC':
         if ($target instanceof SquealChannel) {
           $topic = substr($line, strpos($line, ' :') + 2);
-          $old_topic = $target->getTopic();
+          //$old_topic = $target->getTopic();
           $target->setTopic($topic);
           $this->event('Topic', array(
             'channel' => $target,
             'user' => $sender,
-            'old_topic' => $old_topic,
+            //'old_topic' => $old_topic,
           ));
         } else {
           $this->event('Unknown', array(
@@ -544,17 +542,34 @@ class SquealIrcBot {
   }
 
   // Handles numerical responses from the server
-  public function handleServerResponse($code, $response) {
+  public function handleServerResponse($code, $response, $line) {
     switch ($code) {
+      case SquealReplyConstants::RPL_LISTSTART:
+        $this->channelList = array();
+        break;
+
       case SquealReplyConstants::RPL_LIST:
         $tokens = explode(' ', $response, 4);
-        $channel = $this->getChannel($tokens[1]);
+        $name = $tokens[1];
+        $count = (int) $tokens[2];
+        $topic = substr(strstr($tokens[3], ':'), 1);
+
+        $this->channelList[$name] = array(
+          'userCount' => $count,
+          'topic' => $topic,
+        );
+
+        $channel = $this->getChannel($name);
         if ($channel) {
-          $count = (int) $tokens[2];
-          $topic = substr(strstr($tokens[3], ':'), 1);
           $channel->setUserCount($count);
           $channel->setTopic($count);
         }
+        break;
+
+      case SquealReplyConstants::RPL_LISTEND:
+        $this->event('List', array(
+          'channels' => $this->channelList,
+        ));
         break;
 
       case SquealReplyConstants::RPL_TOPICINFO:
@@ -565,12 +580,12 @@ class SquealIrcBot {
           if (!$user) {
             $user = new SquealUser($this, $tokens[2]);
           }
-          $old_topic = $channel->getTopic();
+          //$old_topic = $channel->getTopic();
           $date = (int) $tokens[3];
           $this->event('Topic', array(
             'channel' => $channel,
             'user' => $user,
-            'old_topic' => $old_topic,
+            //'old_topic' => $old_topic,
             'date' => $date,
           ));
         }
@@ -604,6 +619,11 @@ class SquealIrcBot {
           }
         }
         break;
+
+      default:
+        $this->event('Unknown', array(
+          'line' => $line,
+        ));
     }
   }
 
@@ -615,6 +635,10 @@ class SquealIrcBot {
 
   public function getAutoNickChange() {
     return $this->autoNickChange;
+  }
+
+  public function requestChannelList() {
+    $this->sendRawLine('LIST');
   }
 
   // Join a channel on the server
