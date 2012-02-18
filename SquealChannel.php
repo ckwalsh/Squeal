@@ -23,7 +23,13 @@
  * leak memory. Instead, save the channel name and retrieve them each time
  * using SquealIrcBot::getChannel().
  */
-final class SquealChannel {
+class SquealChannelFactory {
+  public function create($bot, $nick) {
+    return new SquealChannel($bot, $nick);
+  }
+}
+
+class SquealChannel {
   private
     $bot,
     $name,

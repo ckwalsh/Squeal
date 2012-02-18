@@ -30,7 +30,13 @@
  * bot; if they leave all the channels the bot is currently in, their state is
  * lost and they will need to be reauthenticated.
  */
-final class SquealUser implements ArrayAccess {
+class SquealUserFactory {
+  public function create($bot, $nick) {
+    return new SquealUser($bot, $nick);
+  }
+}
+
+class SquealUser implements ArrayAccess {
   private
     $id,
     $bot,
