@@ -54,7 +54,7 @@ abstract class SquealCommandListener {
       $command = strtolower($command);
       $aliases = $this->getCommandAliases();
       if (array_key_exists($command, $aliases)) {
-        $command = strtolower($command);
+        $command = strtolower($aliases[$command]);
       }
 
       $method = 'cmd' . ucfirst($command);

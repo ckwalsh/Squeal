@@ -138,6 +138,10 @@ class SquealIrcBot {
       }
     }
 
+    if ($this->config->nickservPassword) {
+      $this->identify($this->config->nickservPassword);
+    }
+
     $this->event('Connect');
   }
 
@@ -567,7 +571,7 @@ class SquealIrcBot {
 
       case SquealReplyConstants::RPL_NAMREPLY:
         $tokens = preg_split('/[ \t\n\r\f]+/', $response);
-        $pos = 4;
+        $pos = 2;
         $name = $tokens[$pos++];
         $channel = $this->getChannel($name);
 
@@ -652,7 +656,7 @@ class SquealIrcBot {
 
   // Identify to nickserv using the given password
   public function identify($password) {
-    $this->sendRawLine('NICKSERV IDENTIFY ' . $password);
+    $this->sendRawLine('PRIVMSG NickServ :IDENTIFY ' . $password);
   }
 
   public function getNick() {
@@ -699,7 +703,7 @@ class SquealIrcBot {
     $this->eventCache = null;
   }
 
-  protected function getEvents() {
+  public function getEvents() {
     if ($this->eventCache === null) {
       $this->eventCache = array('All' => array());
 

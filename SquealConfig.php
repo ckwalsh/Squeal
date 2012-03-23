@@ -22,6 +22,7 @@ class SquealConfig {
   public $password = null;
   public $ssl = false;
   public $name = 'SquealBot';
+  public $nickservPassword = null;
   public $login = 'SquealBot';
   public $version = 'SquealBot 1.2-dev';
   public $finger = "I'm SquealBot";

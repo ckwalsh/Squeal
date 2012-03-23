@@ -35,7 +35,7 @@ class SquealHelpListener extends SquealCommandListener {
     $command = strtolower(reset($parts));
     $params = next($parts);
 
-    $listeners = $bot->getEventListeners();
+    $listeners = $bot->getConfig()->listeners;
     $listeners = array_filter(
       $listeners,
       array($this, 'filterCommandListeners')
@@ -73,10 +73,12 @@ class SquealHelpListener extends SquealCommandListener {
     } else {
       // List all the available commands
       $commands = array();
+      $prefix = '';
 
       foreach ($listeners as $listener) {
         $methods = get_class_methods($listener);
         $aliases = $listener->getCommandAliases();
+        $prefix = $listener->getCommandPrefix();
 
         foreach ($methods as $method) {
           if (preg_match('/cmd[A-Z][a-z]*/', $method)) {
@@ -99,6 +101,9 @@ class SquealHelpListener extends SquealCommandListener {
 
       $target->sendMessage(
         'All commands: ' . implode(', ', array_keys($commands))
+      );
+      $target->sendMessage(
+        'Commands should start with ' . $bot->getNick() . ' or ' . $prefix
       );
     }
 

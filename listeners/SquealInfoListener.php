@@ -96,6 +96,7 @@ class SquealInfoListener extends SquealCommandListener {
   }
 
   protected function get($key) {
+    $key = strtolower($key);
     if (array_key_exists($key, $this->info)) {
       return $this->info[$key];
     }
@@ -104,10 +105,12 @@ class SquealInfoListener extends SquealCommandListener {
   }
 
   protected function set($key, $value) {
+    $key = strtolower($key);
     $this->info[$key] = $value;
   }
 
   protected function remove($key) {
+    $key = strtolower($key);
     if (array_key_exists($key, $this->info)) {
       unset($this->info[$key]);
     }
