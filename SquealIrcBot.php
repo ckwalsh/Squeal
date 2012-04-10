@@ -151,13 +151,23 @@ class SquealIrcBot {
     stream_set_timeout($this->socket, 0, 0);
     $max_length = 512; // Per the IRC spec
     while (true) {
-      $sec = (int) ($this->config->tick / 1000);
-      $usec = ($this->config->tick * 1000) % 1000000;
+      $wait = $this->schedule->getTimeToNextCallback();
+      // If nothing is subscribed to the tick event, we might be able to block
+      if (array_key_exists('tick', $this->getEvents())) {
+        if ($wait === false) {
+          $wait = $this->config->tick / 1000;
+        } else {
+          $wait = min($this->config->tick, $wait);
+        }
+      }
 
-      // If nothing is subscribed to the tick event, block instead
-      if (!array_key_exists('tick', $this->getEvents())) {
-        $sec = null;
-        $usec = null;
+      $sec = null;
+      $usec = null;
+
+      if ($wait !== false) {
+        $wait = max($wait, 0);
+        $sec = (int) $wait;
+        $usec = ($wait * 1000000) % 1000000;
       }
 
       // So this next bit of code is ugly... sorry
@@ -728,8 +738,7 @@ class SquealIrcBot {
 
   // Schedules the callback to be executed after the timestamp $time
   public function scheduleCallback($callback, $time, $args = array()) {
-    // Negative time since it's a max heap
-    $this->schedule->insert(array($callback, $args), -$time);
+    $this->schedule->add($callback, $time, $args);
   }
 
   private function addUser($user) {

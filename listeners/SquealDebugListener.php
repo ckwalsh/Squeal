@@ -18,6 +18,6 @@
 
 class SquealDebugListener {
   public function onRaw($bot, $args) {
-    echo $args['line'] . "\n";
+    echo time() . '<' . $args['line'] . "\n";
   }
 }

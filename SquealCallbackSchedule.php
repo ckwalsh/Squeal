@@ -32,13 +32,22 @@ final class SquealCallbackSchedule {
   public function getTriggeredCallback() {
     if ($this->queue->valid()) {
       $top = $this->queue->top();
-      if (-$top['priority'] > microtime(true)) {
+      if (-$top['priority'] < microtime(true)) {
         $this->queue->extract();
         return $top['data'];
       }
     }
 
     return null;
+  }
+
+  public function getTimeToNextCallback() {
+    if ($this->queue->valid()) {
+      $top = $this->queue->top();
+      return -$top['priority'] - microtime(true);
+    } else {
+      return false;
+    }
   }
 }
 
@@ -57,7 +66,7 @@ final class SquealCallbackSchedule {
   }
 
   public function getTriggeredCallback() {
-    if ($this->heap && $this->heap[0][1] > microtime(true)) {
+    if ($this->heap && $this->heap[0][1] < microtime(true)) {
       $el = $this->heap[0];
       $new_top = array_pop($this->heap);
       if (sizeof($this->heap)) {
@@ -69,6 +78,14 @@ final class SquealCallbackSchedule {
     }
 
     return null;
+  }
+
+  public function getTimeToNextCallback() {
+    if ($this->heap) {
+      return $this->heap[0][1] - microtime(true);
+    } else {
+      return false;
+    }
   }
 
   private function bubbleUp() {

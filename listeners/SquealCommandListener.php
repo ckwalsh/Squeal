@@ -25,6 +25,9 @@
  */
 abstract class SquealCommandListener {
 
+  public function __construct() {
+  }
+
   public function getCommandPrefix() {
     return '@';
   }
