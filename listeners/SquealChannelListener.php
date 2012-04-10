@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with SquealIrcBot.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 class SquealChannelListener extends SquealCommandListener {
   public function cmdJoin($bot, $message_args, $private, $cmd_params) {
     $target = $private ? $message_args['user'] : $message_args['channel'];
